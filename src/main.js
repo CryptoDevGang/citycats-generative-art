@@ -20,6 +20,8 @@ let hash = [];
 let decodedHash = [];
 const Exists = new Map();
 
+// Custom
+let metadataByRarity = [];
 
 const addRarity = _str => {
   let itemRarity;
@@ -30,8 +32,17 @@ const addRarity = _str => {
     }
   });
 
-  return itemRarity;
+  // return itemRarity;
+  const randomInt = getRandomInt(1, 5);
+  // console.log("randomInt: " + randomInt);
+  return randomInt;
 };
+
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min)) + min; //최댓값은 제외, 최솟값은 포함
+}
 
 const cleanName = _str => {
   let name = _str.slice(0, -4);
@@ -83,23 +94,58 @@ const saveLayer = (_canvas, _edition) => {
 const addMetadata = _edition => {
   let dateTime = Date.now();
   let tempMetadata = {
-    hash: hash.join(""),
-    decodedHash: decodedHash,
+    // hash: hash.join(""),
+    // decodedHash: decodedHash,
+    // date: dateTime,
+    name: `CityCats #${_edition}`,
     edition: _edition,
-    date: dateTime,
     attributes: attributes,
   };
-  metadata.push(tempMetadata);
+
+  // Start
+  let sum = 0;
+  attributes.forEach(attribute => {
+    sum += Number(attribute.rarity);
+  })
+
+  // initialize
   attributes = [];
   hash = [];
   decodedHash = [];
+
+  if (sum > 13) {
+    console.log('sum: ' + sum);
+    metadataByRarity.push(tempMetadata);
+
+    createEachFile(_edition, tempMetadata);
+    return;
+  }
+  // End
+
+  // metadata.push(tempMetadata);
+  // attributes = [];
+  // hash = [];
+  // decodedHash = [];
+  //
+  // createEachFile(_edition, tempMetadata);
 };
+
+const createEachFile = (_edition, metadata0) => {
+  fs.stat(`${buildDir}/${_edition}${metDataFile}`, (err) => {
+    if(err == null || err.code === 'ENOENT') {
+      fs.writeFileSync(`${buildDir}/${_edition}${metDataFile}`, JSON.stringify(metadata0, null, 2));
+    } else {
+      console.log('Oh no, error: ', err.code);
+    }
+  });
+}
 
 const addAttributes = (_element, _layer) => {
   let tempAttr = {
-    id: _element.id,
-    layer: _layer.name,
-    name: _element.name,
+    // id: _element.id,
+    // rarity: _element.rarity,
+    value: _element.name,
+    trait_type: _layer.name,
     rarity: _element.rarity,
   };
   attributes.push(tempAttr);
