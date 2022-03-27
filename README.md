@@ -66,5 +66,5 @@ Then optionally, update your `format` size, ie the outputted image size, and the
 When you are all ready, run the following command and your outputted art will be in the `build` directory:
 
 ```sh
-npm run build
+npm run resource
 ```

@@ -21,7 +21,9 @@ let decodedHash = [];
 const Exists = new Map();
 
 // Custom
+let attributesContext = [];
 let metadataByRarity = [];
+let sumOfRarity = 0;
 
 const addRarity = _str => {
   let itemRarity;
@@ -32,10 +34,9 @@ const addRarity = _str => {
     }
   });
 
-  // return itemRarity;
-  const randomInt = getRandomInt(1, 5);
-  // console.log("randomInt: " + randomInt);
-  return randomInt;
+  return itemRarity;
+  // const randomInt = getRandomInt(1, 5);
+  // return randomInt;
 };
 
 function getRandomInt(min, max) {
@@ -76,7 +77,6 @@ const layersSetup = layersOrder => {
     size: { width: format.width, height: format.height },
     number: layerObj.number
   }));
-
   return layers;
 };
 
@@ -97,43 +97,29 @@ const addMetadata = _edition => {
     // hash: hash.join(""),
     // decodedHash: decodedHash,
     // date: dateTime,
+    // edition: _edition,
     name: `CityCats #${_edition}`,
-    edition: _edition,
     attributes: attributes,
   };
 
-  // Start
-  let sum = 0;
-  attributes.forEach(attribute => {
-    sum += Number(attribute.rarity);
-  })
-
   // initialize
+  console.log(`#${_edition} - sumOfRarity: ${sumOfRarity}`);
   attributes = [];
+  attributesContext = [];
   hash = [];
   decodedHash = [];
 
-  if (sum > 13) {
-    console.log('sum: ' + sum);
-    metadataByRarity.push(tempMetadata);
+  metadataByRarity.push(tempMetadata);
 
-    createEachFile(_edition, tempMetadata);
-    return;
-  }
-  // End
+  createEachFile(_edition, tempMetadata, sumOfRarity);
+  sumOfRarity = 0;
 
-  // metadata.push(tempMetadata);
-  // attributes = [];
-  // hash = [];
-  // decodedHash = [];
-  //
-  // createEachFile(_edition, tempMetadata);
 };
 
-const createEachFile = (_edition, metadata0) => {
+const createEachFile = (_edition, metadata0, sumOfRarity) => {
   fs.stat(`${buildDir}/${_edition}${metDataFile}`, (err) => {
     if(err == null || err.code === 'ENOENT') {
-      fs.writeFileSync(`${buildDir}/${_edition}${metDataFile}`, JSON.stringify(metadata0, null, 2));
+      fs.writeFileSync(`${buildDir}/${_edition}${metDataFile}_${sumOfRarity}`, JSON.stringify(metadata0, null, 2));
     } else {
       console.log('Oh no, error: ', err.code);
     }
@@ -143,12 +129,21 @@ const createEachFile = (_edition, metadata0) => {
 const addAttributes = (_element, _layer) => {
   let tempAttr = {
     // id: _element.id,
-    // rarity: _element.rarity,
     value: _element.name,
     trait_type: _layer.name,
-    rarity: _element.rarity,
+    // rarity: _element.rarity, // FIXME
   };
+
+  let tempAttrContext = {
+    // id: _element.id,
+    value: _element.name,
+    trait_type: _layer.name,
+    rarity: _element.rarity, // FIXME
+  };
+
   attributes.push(tempAttr);
+  attributesContext.push(tempAttrContext);
+
   hash.push(_layer.id);
   hash.push(_element.id);
   decodedHash.push({ [_layer.id]: _element.id });
@@ -156,10 +151,15 @@ const addAttributes = (_element, _layer) => {
 
 const drawLayer = async (_layer, _edition) => {
   const rand = Math.random();
+
+  // FIXME: skin은 무조건 추가
   let element =
     _layer.elements[Math.floor(rand * _layer.number)] ? _layer.elements[Math.floor(rand * _layer.number)] : null;
+
   if (element) {
     addAttributes(element, _layer);
+    sumOfRarity += Number(element.rarity);
+
     const image = await loadImage(`${_layer.location}${element.fileName}`);
 
     ctx.drawImage(
@@ -169,7 +169,7 @@ const drawLayer = async (_layer, _edition) => {
       _layer.size.width,
       _layer.size.height
     );
-    saveLayer(canvas, _edition);
+    await saveLayer(canvas, _edition);
   }
 };
 
@@ -177,27 +177,29 @@ const createFiles = async edition => {
   const layers = layersSetup(layersOrder);
 
   let numDupes = 0;
- for (let i = 1; i <= edition; i++) {
-   await layers.forEach(async (layer) => {
-     await drawLayer(layer, i);
-   });
+  for (let i = 1; i <= edition; i++) {
+    await layers.forEach(async (layer) => {
+      await drawLayer(layer, i);
+    });
 
-   let key = hash.toString();
-   if (Exists.has(key)) {
-     console.log(
-       `Duplicate creation for edition ${i}. Same as edition ${Exists.get(
-         key
-       )}`
-     );
-     numDupes++;
-     if (numDupes > edition) break; //prevents infinite loop if no more unique items can be created
-     i--;
-   } else {
-     Exists.set(key, i);
-     addMetadata(i);
-     console.log("Creating edition " + i);
-   }
- }
+    let key = hash.toString();
+    if (Exists.has(key)) {
+      console.log(
+          `Duplicate creation for edition ${i}. Same as edition ${Exists.get(
+              key
+          )}`
+      );
+      numDupes++;
+      if (numDupes > edition) {
+        break;
+      } //prevents infinite loop if no more unique items can be created
+      i--;
+    } else {
+      Exists.set(key, i);
+      addMetadata(i);
+      console.log("Creating edition " + i);
+    }
+  }
 };
 
 const createMetaData = () => {

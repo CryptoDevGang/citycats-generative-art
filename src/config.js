@@ -16,9 +16,7 @@ const format = {
 const rarity = [
     { key: "_1", val: "1" },
     { key: "_2", val: "2" },
-    { key: "_3", val: "3" },
-    { key: "_4", val: "4" },
-    { key: "_5", val: "5" }
+    { key: "_3", val: "3" }
 ];
 
 const defaultEdition = 10;
