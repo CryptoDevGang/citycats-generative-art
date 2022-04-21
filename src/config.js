@@ -1,9 +1,9 @@
 const layersOrder = [
     { name: 'bg', number: 26 },
-    { name: 'skin', number: 59 },
+    { name: 'skin', number: 8 },
     { name: 'body', number: 44 },
-    { name: 'hair', number: 50 },
-    { name: 'face', number: 46 },
+    { name: 'hair', number: 49 },
+    { name: 'face', number: 45 },
     // { name: 'bg_test', number: 1 },
     // { name: 'body_test', number: 2 },
 ];
