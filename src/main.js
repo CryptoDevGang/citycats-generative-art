@@ -21,7 +21,6 @@ let decodedHash = [];
 const Exists = new Map();
 
 // Custom
-let attributesContext = [];
 let metadataByRarity = [];
 let sumOfRarity = 0;
 
@@ -105,7 +104,6 @@ const addMetadata = _edition => {
   // initialize
   console.log(`#${_edition} - sumOfRarity: ${sumOfRarity}`);
   attributes = [];
-  attributesContext = [];
   hash = [];
   decodedHash = [];
 
@@ -129,20 +127,12 @@ const createEachFile = (_edition, metadata0, sumOfRarity) => {
 const addAttributes = (_element, _layer) => {
   let tempAttr = {
     // id: _element.id,
-    value: _element.name,
+    value: String(_element.name).split('.png')[0],
     trait_type: _layer.name,
     // rarity: _element.rarity, // FIXME
   };
 
-  let tempAttrContext = {
-    // id: _element.id,
-    value: _element.name,
-    trait_type: _layer.name,
-    rarity: _element.rarity, // FIXME
-  };
-
   attributes.push(tempAttr);
-  attributesContext.push(tempAttrContext);
 
   hash.push(_layer.id);
   hash.push(_element.id);

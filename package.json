@@ -10,6 +10,7 @@
   "author": "Daniel Eugene Botha",
   "license": "ISC",
   "dependencies": {
-    "canvas": "^2.9.0"
+    "canvas": "^2.9.0",
+    "crypto-js": "^4.1.1"
   }
 }
